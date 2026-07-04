@@ -70,6 +70,11 @@ end
 
 function NS.Loader:OnEvent(event, ...)
     if event == "PLAYER_ENTERING_WORLD" then
+        -- Load modules on first world entry
+        if not self._modulesLoaded then
+            self:LoadAll()
+            self._modulesLoaded = true
+        end
         self:Fire("ON_READY", ...)
     elseif event == "GUILD_ROSTER_UPDATE" then
         self:Fire("ON_ROSTER", ...)
@@ -84,3 +89,17 @@ function NS.Loader:OnEvent(event, ...)
         self:Fire("ON_CHAT", ...)
     end
 end
+
+-- Create the hidden event frame that drives the whole event bus.
+-- Without this, no lifecycle callbacks (ON_READY, ON_ROSTER, ON_COMM, ON_ZONE,
+-- ON_CHAT) would ever fire, and slash commands would silently do nothing
+-- because the main frame is never created.
+local eventFrame = CreateFrame("Frame", "GuildUIPlusEventFrame")
+eventFrame:SetScript("OnEvent", function(_, event, ...)
+    NS.Loader:OnEvent(event, ...)
+end)
+eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("GUILD_ROSTER_UPDATE")
+eventFrame:RegisterEvent("CHAT_MSG_ADDON")
+eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+eventFrame:RegisterEvent("GUILD_MOTD_CHANGED")

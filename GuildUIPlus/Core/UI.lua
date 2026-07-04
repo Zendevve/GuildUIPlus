@@ -179,6 +179,12 @@ NS.Loader:On("ON_READY", function()
     NS.UI:CreateModulePanel("locator")
     NS.UI:CreateModulePanel("motd")
     NS.UI:CreateModulePanel("tutorial")
+    NS.UI._panelsBuilt = true
+    -- Rebuild the rail after a short delay so module tabs registered
+    -- by other ON_READY callbacks (e.g., Roster) are included.
+    C_Timer.After(0, function()
+        NS.UI:BuildRail()
+    end)
 end)
 
 -- Slash commands
@@ -187,6 +193,8 @@ SLASH_GUILDUIPLUS2 = "/guilduiplus"
 SlashCmdList["GUILDUIPLUS"] = function(msg)
     msg = NS.Util.trim(msg or "")
     if msg == "" then
+        -- Ensure the main frame exists before toggling (ON_READY may not have fired yet)
+        NS.UI:CreateMainFrame()
         NS.UI:Toggle()
     elseif msg == "help" then
         print("|cff00ff00[GUI+]|r Commands:")
@@ -196,7 +204,23 @@ SlashCmdList["GUILDUIPLUS"] = function(msg)
         print("  /gg settings - Open settings")
         print("  /gg help - Show this help")
     else
+        -- Ensure frame + panels exist, then switch to the requested module
         NS.UI:CreateMainFrame()
+        if not NS.UI._panelsBuilt then
+            NS.UI:BuildRail()
+            NS.UI:CreateModulePanel("roster")
+            NS.UI:CreateModulePanel("forum")
+            NS.UI:CreateModulePanel("schedule")
+            NS.UI:CreateModulePanel("recruitment")
+            NS.UI:CreateModulePanel("attendance")
+            NS.UI:CreateModulePanel("banker")
+            NS.UI:CreateModulePanel("ledger")
+            NS.UI:CreateModulePanel("dashboard")
+            NS.UI:CreateModulePanel("locator")
+            NS.UI:CreateModulePanel("motd")
+            NS.UI:CreateModulePanel("tutorial")
+            NS.UI._panelsBuilt = true
+        end
         NS.UI:Show()
         NS.UI:SwitchModule(msg)
     end
