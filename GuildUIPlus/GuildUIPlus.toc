@@ -1,0 +1,26 @@
+## Interface: 30300
+## Title: GuildUI+
+## Notes: Definitive guild management addon for WotLK 3.3.5a
+## Author: GuildUI+ Team
+## Version: 1.0.0
+## SavedVariables: GuildUIPlusDB
+
+Core/Util.lua
+Core/Loader.lua
+Core/Comm.lua
+Core/Settings.lua
+Core/UI.lua
+
+Modules/Roster.lua
+Modules/Forum.lua
+Modules/Schedule.lua
+Modules/Recruitment.lua
+Modules/Attendance.lua
+Modules/Banker.lua
+Modules/Ledger.lua
+Modules/Notifier.lua
+Modules/Webhook.lua
+Modules/Dashboard.lua
+Modules/Locator.lua
+Modules/MOTD.lua
+Modules/Tutorial.lua
