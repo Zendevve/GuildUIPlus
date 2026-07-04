@@ -5,6 +5,7 @@
 ## Version: 1.0.0
 ## SavedVariables: GuildUIPlusDB
 
+GuildUIPlus.lua
 Core/Util.lua
 Core/Loader.lua
 Core/Comm.lua

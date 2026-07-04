@@ -1,7 +1,8 @@
 -- GuildUI+ Roster Module
 -- Custom columns, search-as-you-type, sort, alt-grouping, multi-filter, right-click context
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Roster = {
     name = "roster",
@@ -408,20 +409,9 @@ function Roster:_showMemberDetail(member)
     -- Detail frame (reusable)
     local detail = _G["GuildUIPlusRosterDetail"]
     if not detail then
-        detail = CreateFrame("Frame", "GuildUIPlusRosterDetail", UIParent, "ButtonFrameTemplate")
+        detail = NS.UI:CreateDialogFrame("GuildUIPlusRosterDetail", "Member Details", UIParent)
         detail:SetSize(300, 350)
-        detail:SetPoint("CENTER")
-        detail:SetMovable(true)
-        detail:EnableMouse(true)
-        detail:RegisterForDrag("LeftButton")
-        detail:SetScript("OnDragStart", detail.StartMoving)
-        detail:SetScript("OnDragStop", detail.StopMovingOrSizing)
-        detail:SetClampedToScreen(true)
-        detail:SetFrameStrata("DIALOG")
         tinsert(UISpecialFrames, "GuildUIPlusRosterDetail")
-
-        detail.TitleText:SetText("Member Details")
-        detail.CloseButton:SetScript("OnClick", function() detail:Hide() end)
     end
 
     detail:Show()

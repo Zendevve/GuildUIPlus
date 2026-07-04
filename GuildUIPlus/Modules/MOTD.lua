@@ -1,7 +1,8 @@
 -- GuildUI+ MOTD Module
 -- Synced MOTD, refresh intervals, first-of-day re-prompt
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local MOTD = {
     name = "motd",
@@ -46,5 +47,5 @@ NS.Comm:On(NS.Comm.OP.MOTD_SYNC, function(sender, payload)
 end)
 
 NS.Loader:On("ON_READY", function()
-    C_Timer.NewTicker(300, function() MOTD:CheckForNewDay() end)
+    NS.Util.NewTicker(300, function() MOTD:CheckForNewDay() end)
 end)

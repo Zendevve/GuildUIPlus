@@ -1,7 +1,8 @@
 -- GuildUI+ Settings + Migrations
 -- Per-account with per-char override sections
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 NS.Settings = {
     DEFAULTS = {

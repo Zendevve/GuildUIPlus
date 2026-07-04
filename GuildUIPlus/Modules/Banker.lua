@@ -1,7 +1,8 @@
 -- GuildUI+ Banker Module
 -- Tab filters (class/quality/subtype), Auctioneer value-floor, multi-pass
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Banker = {
     name = "banker",

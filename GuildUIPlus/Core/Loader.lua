@@ -1,7 +1,8 @@
 -- GuildUI+ Module Loader
 -- Registry-based lazy-load system
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 NS.Loader = {
     modules = {},

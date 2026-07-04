@@ -1,7 +1,8 @@
 -- GuildUI+ Schedule Module
 -- Calendar, recurring events, role sign-up, attendance roll-up
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Schedule = {
     name = "schedule",
@@ -155,5 +156,5 @@ end)
 
 -- Periodic reminder check
 NS.Loader:On("ON_READY", function()
-    C_Timer.NewTicker(60, function() Schedule:CheckReminders() end)
+    NS.Util.NewTicker(60, function() Schedule:CheckReminders() end)
 end)

@@ -1,7 +1,8 @@
 -- GuildUI+ Recruitment Module
 -- Applicant → Trial → Raider pipeline, trade-channel rotation, auto-DM
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Recruitment = {
     name = "recruitment",

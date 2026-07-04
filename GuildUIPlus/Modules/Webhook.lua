@@ -1,7 +1,8 @@
 -- GuildUI+ Webhook Module
 -- Discord outbound via officer channel, retry queue, templates
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Webhook = {
     name = "webhook",

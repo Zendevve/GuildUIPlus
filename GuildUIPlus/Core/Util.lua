@@ -1,14 +1,9 @@
 -- GuildUI+ Utility Library
 -- Pure-Lua helpers, zero external deps
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 NS.Util = {}
-
--- Constants
-NS.ADDON_NAME = ADDON
-NS.VERSION = "1.0.0"
-NS.PROTOCOL_VERSION = 1
-NS.COMM_PREFIX = "GG1"
 
 -- Class colors (WotLK API)
 NS.CLASS_COLORS = {}
@@ -24,11 +19,14 @@ end
 NS.CLASS_LOCALIZED = {}
 NS.CLASS_TOKEN_BY_NAME = {}
 do
-    local localizedClasses = { GetClassInfo() }
-    for i = 1, #localizedClasses do
-        local localized, token = localizedClasses[i], localizedClasses[i + 1]
-        NS.CLASS_LOCALIZED[token] = localized
-        NS.CLASS_TOKEN_BY_NAME[localized] = token
+    -- In 3.3.5a, GetClassInfo(index) takes a 1-based index (1..10)
+    -- Returns: localizedClassName, classToken
+    for i = 1, 10 do
+        local localized, token = GetClassInfo(i)
+        if localized and token then
+            NS.CLASS_LOCALIZED[token] = localized
+            NS.CLASS_TOKEN_BY_NAME[localized] = token
+        end
     end
 end
 
@@ -144,28 +142,93 @@ function NS.Util.colorText(text, r, g, b)
     return string.format("|cff%02x%02x%02x%s|r", r * 255, g * 255, b * 255, text)
 end
 
--- CRC32 (lightweight, for audit chain)
+-- CRC32 (pure Lua, no bit library dependency — for audit chain)
+-- Uses modular arithmetic instead of bit.* functions for 3.3.5a compatibility
 do
     local CRC_TABLE = {}
     for i = 0, 255 do
         local c = i
         for _ = 1, 8 do
             if c % 2 == 1 then
-                c = bit.rshift(c, 1) - bit.band(0xEDB88320, 0xFFFFFFFF)
+                c = math.floor(c / 2)
+                -- XOR with 0xEDB88320 using modular arithmetic
+                -- In Lua 5.1, we use the fact that 0xEDB88320 fits in 32 bits
+                -- and XOR can be done via string manipulation or manual bit ops
+                local xor_val = 0xEDB88320
+                local result = 0
+                local bit_c = c
+                local bit_v = xor_val
+                local pow = 1
+                for _ = 1, 32 do
+                    local c_bit = bit_c % 2
+                    local v_bit = bit_v % 2
+                    if c_bit ~= v_bit then
+                        result = result + pow
+                    end
+                    bit_c = math.floor(bit_c / 2)
+                    bit_v = math.floor(bit_v / 2)
+                    pow = pow * 2
+                end
+                c = result
             else
-                c = bit.rshift(c, 1)
+                c = math.floor(c / 2)
             end
         end
-        CRC_TABLE[i] = bit.band(c, 0xFFFFFFFF)
+        CRC_TABLE[i] = c % 0x100000000
     end
 
     function NS.Util.crc32(data)
         local crc = 0xFFFFFFFF
         for i = 1, #data do
             local byte = string.byte(data, i)
-            crc = bit.bxor(CRC_TABLE[bit.band(bit.bxor(crc, byte), 0xFF)], bit.rshift(crc, 8))
+            -- XOR crc with byte, mask to 8 bits → index
+            local index = (crc % 256) ~ byte
+            -- Manual XOR for 8-bit values
+            local xored = 0
+            local a = crc
+            local b = byte
+            local pow = 1
+            for _ = 1, 8 do
+                local a_bit = a % 2
+                local b_bit = b % 2
+                if a_bit ~= b_bit then
+                    xored = xored + pow
+                end
+                a = math.floor(a / 2)
+                b = math.floor(b / 2)
+                pow = pow * 2
+            end
+            local table_val = CRC_TABLE[xored]
+            -- crc = table_val XOR floor(crc / 256)
+            local shifted = math.floor(crc / 256)
+            local result = 0
+            local a2 = table_val
+            local b2 = shifted
+            local pow2 = 1
+            for _ = 1, 32 do
+                local a_bit = a2 % 2
+                local b_bit = b2 % 2
+                if a_bit ~= b_bit then
+                    result = result + pow2
+                end
+                a2 = math.floor(a2 / 2)
+                b2 = math.floor(b2 / 2)
+                pow2 = pow2 * 2
+            end
+            crc = result % 0x100000000
         end
-        return bit.band(bit.bnot(crc), 0xFFFFFFFF)
+        -- XOR with 0xFFFFFFFF (bitwise NOT for 32-bit)
+        local not_crc = 0
+        local a3 = crc
+        local pow3 = 1
+        for _ = 1, 32 do
+            if a3 % 2 == 0 then
+                not_crc = not_crc + pow3
+            end
+            a3 = math.floor(a3 / 2)
+            pow3 = pow3 * 2
+        end
+        return not_crc
     end
 end
 
@@ -232,12 +295,71 @@ function NS.Util.debounce(delay, fn)
     local timer
     return function(...)
         if timer then
-            CancelTimer(timer)
+            NS.Util.CancelTimer(timer)
         end
         local args = { ... }
-        timer = C_Timer.After(delay, function()
+        timer = NS.Util.AfterTimer(delay, function()
             fn(unpack(args))
             timer = nil
         end)
+    end
+end
+
+-- WotLK 3.3.5a-compatible timer system (replaces C_Timer which doesn't exist)
+-- Uses a single hidden frame with OnUpdate to manage timers
+do
+    local timerFrame = CreateFrame("Frame", "GuildUIPlusTimerFrame")
+    local timers = {}
+    local nextId = 1
+
+    timerFrame:SetScript("OnUpdate", function()
+        local now = GetTime()
+        local toRemove = {}
+        for id, timer in pairs(timers) do
+            if now >= timer.expires then
+                local ok, err = pcall(timer.func)
+                if not ok then
+                    print(string.format("|cffff0000[GUI+]|r Timer error: %s", err))
+                end
+                toRemove[#toRemove + 1] = id
+                if timer.repeating then
+                    timer.expires = now + timer.interval
+                    toRemove[#toRemove] = nil
+                end
+            end
+        end
+        for _, id in ipairs(toRemove) do
+            timers[id] = nil
+        end
+    end)
+
+    -- Schedule a one-shot callback after `delay` seconds
+    function NS.Util.AfterTimer(delay, func)
+        local id = nextId
+        nextId = nextId + 1
+        timers[id] = {
+            expires = GetTime() + delay,
+            func = func,
+            repeating = false,
+        }
+        return id
+    end
+
+    -- Schedule a repeating callback every `interval` seconds
+    function NS.Util.NewTicker(interval, func)
+        local id = nextId
+        nextId = nextId + 1
+        timers[id] = {
+            expires = GetTime() + interval,
+            func = func,
+            repeating = true,
+            interval = interval,
+        }
+        return id
+    end
+
+    -- Cancel a timer by id
+    function NS.Util.CancelTimer(id)
+        timers[id] = nil
     end
 end

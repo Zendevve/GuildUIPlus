@@ -1,7 +1,8 @@
 -- GuildUI+ Ledger Module
 -- DKP/EPGP/item-ledger, undo-window, immutable audit
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Ledger = {
     name = "ledger",

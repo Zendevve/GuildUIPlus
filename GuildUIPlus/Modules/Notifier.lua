@@ -1,7 +1,8 @@
 -- GuildUI+ Notifier Module
 -- Rule engine: officer online, crafter, same-zone, achievement cap, ledger event
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Notifier = {
     name = "notifier",

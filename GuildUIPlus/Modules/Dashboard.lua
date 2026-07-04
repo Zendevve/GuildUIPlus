@@ -1,7 +1,8 @@
 -- GuildUI+ Dashboard Module
 -- Class distribution, level histogram, online trend, recruitment snapshot
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Dashboard = {
     name = "dashboard",

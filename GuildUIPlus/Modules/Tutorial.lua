@@ -1,7 +1,8 @@
 -- GuildUI+ Tutorial Module
 -- Interactive overlay tour, dismissable
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Tutorial = {
     name = "tutorial",
@@ -79,20 +80,9 @@ end
 
 function Tutorial:_showFrame()
     if not self._frame then
-        self._frame = CreateFrame("Frame", "GuildUIPlusTutorial", UIParent, "ButtonFrameTemplate")
+        self._frame = NS.UI:CreateDialogFrame("GuildUIPlusTutorial", "Tutorial", UIParent)
         self._frame:SetSize(400, 250)
-        self._frame:SetPoint("CENTER")
-        self._frame:SetMovable(true)
-        self._frame:EnableMouse(true)
-        self._frame:RegisterForDrag("LeftButton")
-        self._frame:SetScript("OnDragStart", self._frame.StartMoving)
-        self._frame:SetScript("OnDragStop", self._frame.StopMovingOrSizing)
-        self._frame:SetClampedToScreen(true)
-        self._frame:SetFrameStrata("DIALOG")
         tinsert(UISpecialFrames, "GuildUIPlusTutorial")
-
-        self._frame.TitleText:SetText("Tutorial")
-        self._frame.CloseButton:SetScript("OnClick", function() Tutorial._frame:Hide() end)
 
         -- Content
         self._frame.title = self._frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -138,6 +128,6 @@ end
 -- Auto-show on first login
 NS.Loader:On("ON_READY", function()
     if not NS.Settings:Get("tutorial", "completed") then
-        C_Timer.After(2, function() Tutorial:Show() end)
+        NS.Util.AfterTimer(2, function() Tutorial:Show() end)
     end
 end)

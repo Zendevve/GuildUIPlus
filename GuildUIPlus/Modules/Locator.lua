@@ -1,7 +1,8 @@
 -- GuildUI+ Locator Module
 -- World-map pins for guild members, same-zone whisper shortcuts
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Locator = {
     name = "locator",

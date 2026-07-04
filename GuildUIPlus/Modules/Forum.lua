@@ -1,7 +1,8 @@
 -- GuildUI+ Forum Module
 -- Reddit-style threads, sticky, polls, edit-history, subscriptions
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Forum = {
     name = "forum",

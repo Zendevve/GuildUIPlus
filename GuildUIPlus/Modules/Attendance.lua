@@ -1,7 +1,8 @@
 -- GuildUI+ Attendance Module
 -- Zone-delta tracking, absence list, weekly digest
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 local Attendance = {
     name = "attendance",

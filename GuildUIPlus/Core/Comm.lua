@@ -2,7 +2,8 @@
 -- Versioned text protocol on GUILD/WHISPER/CHANNEL
 -- Prefix: GG1 (3 chars), body carries: version(1) + OP(1) + flags(1) + msgid(2) + payload(...)
 
-local ADDON, NS = ...
+local ADDON = ...
+local NS = _G.GuildUIPlus
 
 NS.Comm = {
     MSG_ID_MAX = 65535,
